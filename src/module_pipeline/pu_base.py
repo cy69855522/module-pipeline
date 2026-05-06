@@ -24,45 +24,55 @@ class ProcessUnitBase:
         raise NotImplementedError
 
     def log(self, content: str):
-        print(f'{common_utils.STYLE_BOLD_START}[{self.pu_name}]{common_utils.STYLE_BOLD_START} {content}')
+        print(
+            f'{common_utils.STYLE_BOLD_START}[{self.pu_name}]{common_utils.STYLE_BOLD_START} {content}'
+        )
 
     def log_error(self, content: str):
-        print(f'{common_utils.STYLE_BOLD_START}[{self.pu_name} - Error]{common_utils.STYLE_BOLD_START} {content}')
+        print(
+            f'{common_utils.STYLE_BOLD_START}[{self.pu_name} - Error]{common_utils.STYLE_BOLD_START} {content}'
+        )
 
 
-class ProducerInput():
-    available_attributs = set()
+class _ProducerBase:
+    available_attributes = set()
 
     def __init__(self, module: ModuleBase):
         object.__setattr__(self, 'module', module)
 
     def __getattribute__(self, name):
-        available_attributs = object.__getattribute__(self, 'available_attributs')
-        assert name in available_attributs, f'{name} is not in available input attribute {available_attributs}.'
+        if name.startswith('_'):
+            return object.__getattribute__(self, name)
+        available_attributes = object.__getattribute__(self, 'available_attributes')
+        if name == 'available_attributes':
+            return available_attributes
+        assert name in available_attributes, f'{name} is not in available attribute {available_attributes}.'
         return getattr(object.__getattribute__(self, 'module'), name)
 
     def __setattr__(self, name, value):
-        if name == 'available_attributs':
-            object.__setattr__(self, 'available_attributs', value)
+        if name == 'available_attributes':
+            object.__setattr__(self, 'available_attributes', value)
             return
+        self._handle_write(name, value)
+
+    def _handle_write(self, name, value):
+        raise NotImplementedError
+
+    def declare(self, *attributes: str):
+        for attribute in attributes:
+            assert attribute not in self.available_attributes, f'{attribute} is already declared.'
+            self.available_attributes.add(attribute)
+
+
+class ProducerInput(_ProducerBase):
+
+    def _handle_write(self, name, value):
         raise NotImplementedError(f'{name} is not mutable.')
 
 
-class ProducerOutput():
-    available_attributs = set()
+class ProducerOutput(_ProducerBase):
 
-    def __init__(self, module: ModuleBase):
-        object.__setattr__(self, 'module', module)
-
-    def __getattribute__(self, name):
-        available_attributs = object.__getattribute__(self, 'available_attributs')
-        assert name in available_attributs, f'{name} is not in available output attribute {available_attributs}.'
-        return getattr(object.__getattribute__(self, 'module'), name)
-
-    def __setattr__(self, name, value):
-        if name == 'available_attributs':
-            object.__setattr__(self, 'available_attributs', value)
-            return
-        available_attributs = object.__getattribute__(self, 'available_attributs')
-        assert name in available_attributs, f'{name} is not in available output attribute {available_attributs}.'
+    def _handle_write(self, name, value):
+        available_attributes = object.__getattribute__(self, 'available_attributes')
+        assert name in available_attributes, f'{name} is not in available output attribute {available_attributes}.'
         setattr(object.__getattribute__(self, 'module'), name, value)

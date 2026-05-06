@@ -8,17 +8,29 @@
 pip install -e .
 ```
 
-或直接通过 PYTHONPATH 使用：
+安装后可使用命令行工具：
 
 ```bash
-export PYTHONPATH=src:$PYTHONPATH
+# 创建新 Module
+module-pipeline-create --module-names MyMonitorModule
+
+# 运行 Pipeline
+module-pipeline-run --module-names MyMonitorModule --module-package myproject.modules
 ```
 
 ## 核心概念
 
+```
+Module (独立进程)
+  └── pu_config.yaml 定义 PU 执行链
+        ├── PU-1.process() → producer_output.xxx
+        ├── PU-2.process() → producer_input.xxx
+        └── ...
+```
+
 - **Module** — 独立进程，通过 `pu_config.yaml` 定义 PU 执行链
-- **PU (Processing Unit)** — 最小执行单元，负责具体逻辑
-- **ProducerInput / ProducerOutput** — 同一 Module 内 PU 之间通过 Module 属性共享数据
+- **PU (Processing Unit)** — 最小执行单元，通过 `process()` 实现具体逻辑
+- **ProducerInput / ProducerOutput** — 同一 Module 内 PU 之间通过 Module 对象属性共享数据（只读/可写代理）
 
 ## 快速开始
 
@@ -27,33 +39,73 @@ export PYTHONPATH=src:$PYTHONPATH
 ```python
 from module_pipeline.generator import create_module
 
-create_module("MyMonitorModule")
+create_module(
+    module_name="MyMonitorModule",
+    project_root=".",          # 默认 cwd
+    module_dir="modules",      # Module 文件存放目录
+    pu_dir="pus",              # PU 文件存放目录
+)
 ```
 
-这会生成三个文件：Module 类、PU 类、`pu_config.yaml`。
+这会自动生成三个文件：
 
-### 2. 实现 PU 逻辑
+```
+modules/MyMonitorModule/
+├── my_monitor_module.py    # Module 类
+└── pu_config.yaml          # PU 执行链配置
+pus/
+└── my_monitor_unit.py      # PU 类
+```
 
-在生成的 PU 文件中填充 `process()` 方法：
+### 2. 配置 PU 执行链
+
+编辑 `pu_config.yaml`，按顺序声明 PU 及参数：
+
+```yaml
+- MyDataFetchUnit:
+    symbol: BTCUSDT
+- MyDisplayUnit:
+    format: json
+```
+
+### 3. 实现 PU 逻辑
 
 ```python
 from module_pipeline.pu_base import ProcessUnitBase
 
-class MyMonitorUnit(ProcessUnitBase):
+class MyDataFetchUnit(ProcessUnitBase):
+
+    def __init__(self, module, symbol: str):
+        self.symbol = symbol
+        super().__init__(module)
+
+    def update_producer_output(self):
+        self.producer_output.available_attributes = {"price"}
 
     def process(self):
-        # 写入共享数据
-        self.producer_output.price = 123.45
+        # 拉取数据并写入共享属性
+        self.producer_output.price = fetch_price(self.symbol)
+
+
+class MyDisplayUnit(ProcessUnitBase):
+
+    def update_producer_input(self):
+        self.producer_input.available_attributes = {"price"}
+
+    def process(self):
+        print(f"Current price: {self.producer_input.price}")
 ```
 
-### 3. 运行管道
+### 4. 运行管道
 
 ```python
 from module_pipeline.utils.runner import run_module_pipeline
 
 run_module_pipeline(
-    module_names="MyMonitorModule",
-    module_package="myproject.modules",
+    module_names="MyMonitorModule,AnotherModule",
+    module_package="modules",                     # Module 包路径
+    root_dir="/path/to/project",                  # 默认 cwd
+    extra_flags={"debug": True},                  # 传入 Module 的额外参数
 )
 ```
 

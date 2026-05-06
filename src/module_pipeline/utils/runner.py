@@ -51,3 +51,23 @@ def run_module_pipeline(
 
         for process in processes:
             process.join()
+
+
+def main():
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Run module pipeline with multi-process.')
+    parser.add_argument('--module-names', required=True, help='逗号分隔的 Module 名称')
+    parser.add_argument('--module-package', default='module', help='Module 所在的 Python 包路径')
+    parser.add_argument('--root-dir', default=None, help='项目根目录，默认 cwd')
+    args = parser.parse_args()
+
+    run_module_pipeline(
+        module_names=args.module_names,
+        module_package=args.module_package,
+        root_dir=args.root_dir,
+    )
+
+
+if __name__ == '__main__':
+    main()

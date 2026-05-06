@@ -2,7 +2,6 @@ import os
 
 from .utils.common_utils import get_module_file_name, get_pu_file_name
 
-
 DEFAULT_MODULE_FILE_CONTENT = '''
 from typing import Dict
 
@@ -34,10 +33,10 @@ class ${PU_NAME}(ProcessUnitBase):
         super().__init__(module)
 
     def update_producer_input(self):
-        self.producer_input.available_attributs = {}
+        self.producer_input.declare()
 
     def update_producer_output(self):
-        self.producer_output.available_attributs = {}
+        self.producer_input.declare()
 
     def process(self):
         pass
@@ -95,3 +94,26 @@ def create_module(
     print(f'  Module file: {new_module_file_path}')
     print(f'  Config file: {new_module_config_path}')
     print(f'  PU file:     {new_pu_file_path}')
+
+
+def main():
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Create a new Module with default PU skeleton.')
+    parser.add_argument('--module-names', required=True, help='逗号分隔的 Module 名称')
+    parser.add_argument('--project-root', default=None, help='项目根目录，默认 cwd')
+    parser.add_argument('--module-dir', default='module', help='Module 文件存放目录')
+    parser.add_argument('--pu-dir', default='pu', help='PU 文件存放目录')
+    args = parser.parse_args()
+
+    for name in args.module_names.split(','):
+        create_module(
+            module_name=name.strip(),
+            project_root=args.project_root,
+            module_dir=args.module_dir,
+            pu_dir=args.pu_dir,
+        )
+
+
+if __name__ == '__main__':
+    main()

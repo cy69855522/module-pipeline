@@ -23,3 +23,7 @@ dev = [
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[project.scripts]
+module-pipeline-run = "module_pipeline.utils.runner:main"
+module-pipeline-create = "module_pipeline.generator:main"

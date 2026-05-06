@@ -8,6 +8,7 @@ src/module_pipeline/pu_signal.py
 src/module_pipeline.egg-info/PKG-INFO
 src/module_pipeline.egg-info/SOURCES.txt
 src/module_pipeline.egg-info/dependency_links.txt
+src/module_pipeline.egg-info/entry_points.txt
 src/module_pipeline.egg-info/requires.txt
 src/module_pipeline.egg-info/top_level.txt
 src/module_pipeline/utils/__init__.py

@@ -1,0 +1,3 @@
+[console_scripts]
+module-pipeline-create = module_pipeline.generator:main
+module-pipeline-run = module_pipeline.utils.runner:main
