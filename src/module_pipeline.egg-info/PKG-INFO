@@ -1,0 +1,15 @@
+Metadata-Version: 2.4
+Name: module_pipeline
+Version: 0.1.0
+Summary: A lightweight module-pipeline framework for building multi-process data processing workflows
+License: MIT
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: PyYAML
+Requires-Dist: IPython
+Requires-Dist: pandas
+Requires-Dist: python-dotenv
+Provides-Extra: dev
+Requires-Dist: pip>=24; extra == "dev"
+
+# module-pipeline

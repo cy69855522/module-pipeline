@@ -1,0 +1,7 @@
+PyYAML
+IPython
+pandas
+python-dotenv
+
+[dev]
+pip>=24

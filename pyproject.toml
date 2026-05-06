@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "module_pipeline"
+version = "0.1.0"
+description = "A lightweight module-pipeline framework for building multi-process data processing workflows"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+    "PyYAML",
+    "IPython",
+    "pandas",
+    "python-dotenv",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pip>=24",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
